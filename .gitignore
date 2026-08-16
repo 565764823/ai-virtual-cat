@@ -1,0 +1,45 @@
+# ===== 依赖 =====
+node_modules/
+.pnp/
+
+# ===== 构建产物 =====
+build/
+dist/
+out/
+*.log
+
+# ===== 环境变量 =====
+.env
+.env.*
+!.env.example
+
+# ===== 编辑器 / IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ===== 系统文件 =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== 测试 / 覆盖率 =====
+coverage/
+
+# ===== Flutter / Dart =====
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ===== 密钥 =====
+*.pem
+*.key
