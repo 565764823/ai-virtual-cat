@@ -29,6 +29,7 @@ Phase0-筹备/POC/runtime/llama-server.exe \
 cd Phase0-筹备/POC/memory
 python memory_poc.py           # 演示完整闭环（抽取→向量化→检索→注入）
 python memory_poc.py --eval    # 运行评测集，输出抽取召回 + 检索命中
+python memory_repl.py          # 交互式：粘贴任意对话，实时抽取事实（人工验证抽取质量）
 ```
 
 - 抽取 + 注入各一次 LLM 调用，CPU 上 7B 每条约 5~15 秒，全程约 1~2 分钟，属正常。
