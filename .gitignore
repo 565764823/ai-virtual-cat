@@ -44,9 +44,9 @@ venv/
 *.pem
 *.key
 
-# ===== 本地模型（大文件，不入库）=====
+# ===== 本地模型与运行时（大文件，不入库）=====
 *.gguf
 *.onnx
 models/
 Models/
-*.bin
+runtime/
