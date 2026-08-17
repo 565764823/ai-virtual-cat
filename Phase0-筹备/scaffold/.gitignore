@@ -1,0 +1,32 @@
+# Unity 本地缓存与构建产物（不入库）
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]serSettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+
+# IDE 与编译生成文件（Unity 自动生成）
+.vs/
+.idea/
+*.csproj
+*.sln
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.pdb
+*.mdb
+*.opendb
+
+# 崩溃/报告
+sysinfo.txt
+
+# 打包产物
+*.apk
+*.aab
+
+# 注意：Unity 的 *.meta 文件（GUID 引用）必须入库，绝不可忽略。
