@@ -43,3 +43,10 @@ venv/
 # ===== 密钥 =====
 *.pem
 *.key
+
+# ===== 本地模型（大文件，不入库）=====
+*.gguf
+*.onnx
+models/
+Models/
+*.bin
