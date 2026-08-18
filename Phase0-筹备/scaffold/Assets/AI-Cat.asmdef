@@ -1,7 +1,11 @@
 {
     "name": "AI-Cat",
     "rootNamespace": "AiCat",
-    "references": [],
+    "references": [
+        "VContainer",
+        "VContainer.Unity",
+        "UniTask"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
