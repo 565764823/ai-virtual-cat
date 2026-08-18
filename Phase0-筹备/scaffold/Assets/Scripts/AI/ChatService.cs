@@ -12,13 +12,17 @@ namespace AiCat.AI
     public sealed class ChatService
     {
         readonly ILlmBackend _backend;
-        readonly string _systemPrompt;
+        readonly Func<string> _systemPromptProvider;
         readonly List<ChatMessage> _history = new List<ChatMessage>();
 
-        public ChatService(ILlmBackend backend, string systemPrompt)
+        /// <summary>
+        /// 构造。systemPromptProvider 每次发送时动态取当前猫的 System Prompt，
+        /// 使领养不同猫（英短/高冷、橘猫/话痨…）后聊天人设随之切换。
+        /// </summary>
+        public ChatService(ILlmBackend backend, Func<string> systemPromptProvider)
         {
             _backend = backend;
-            _systemPrompt = systemPrompt;
+            _systemPromptProvider = systemPromptProvider;
         }
 
         /// <summary>
@@ -35,7 +39,7 @@ namespace AiCat.AI
             _history.Add(new ChatMessage("user", userText));
 
             var messages = new List<ChatMessage>(_history.Count + 1);
-            messages.Add(new ChatMessage("system", _systemPrompt));
+            messages.Add(new ChatMessage("system", _systemPromptProvider()));
             messages.AddRange(_history);
 
             string reply = await _backend.ChatAsync(messages, onToken, ct);

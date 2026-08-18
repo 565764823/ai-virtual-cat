@@ -2,6 +2,7 @@ using System;
 using AiCat.Core;
 using AiCat.Core.DI;
 using UnityEngine;
+using VContainer;
 
 namespace AiCat
 {
@@ -17,7 +18,7 @@ namespace AiCat
             try
             {
                 var go = new GameObject("RootLifetimeScope");
-                Object.DontDestroyOnLoad(go);
+                UnityEngine.Object.DontDestroyOnLoad(go);
                 // AddComponent 会触发 LifetimeScope.Awake → Build()，容器即就绪
                 var scope = go.AddComponent<RootLifetimeScope>();
 

@@ -1,4 +1,5 @@
 using AiCat.AI;
+using AiCat.Core;
 using AiCat.Core.Services;
 using AiCat.Data.Migration;
 using AiCat.Data.Repositories;
@@ -17,7 +18,9 @@ namespace AiCat.Core.DI
         protected override void Configure(IContainerBuilder builder)
         {
             // ---- 数据层 ----
-            builder.Register<SqliteDatabase>(Lifetime.Singleton).As<IDatabase>();
+            // SqliteDatabase 有无参 + (string filePath) 两个构造；VContainer 默认选参数最多者，
+            // 会用 string 当依赖注入而失败，故用工厂显式 new 无参构造。
+            builder.Register<SqliteDatabase>(_ => new SqliteDatabase(), Lifetime.Singleton).As<IDatabase>();
             builder.Register<DatabaseMigrator>(Lifetime.Singleton);
 
             // ---- 仓储（User/Cat 走接口，其余薄仓储自注册）----
@@ -51,8 +54,17 @@ namespace AiCat.Core.DI
             {
                 var backend = r.Resolve<ILlmBackend>();
                 var config = r.Resolve<AiConfig>();
-                string prompt = PersonaPrompt.LoadDefault(config.personaFile);
-                return new ChatService(backend, prompt);
+                var session = r.Resolve<SessionState>();
+                // 通用模板（含 {{占位符}}）加载一次；每次聊天按当前领养猫动态渲染 System Prompt。
+                // 修复：此前 LoadDefault 固定用默认实例（奶盖/话痨），导致领养英短后聊天仍显示「话痨」。
+                string template = PersonaPrompt.LoadTemplate(config.personaFile);
+                return new ChatService(backend, () =>
+                {
+                    var cat = session.CurrentCat;
+                    return cat != null
+                        ? PersonaPrompt.BuildSystemPrompt(cat, template)
+                        : PersonaPrompt.LoadDefault(config.personaFile);
+                });
             }, Lifetime.Singleton);
 
             // ---- UI 框架 ----

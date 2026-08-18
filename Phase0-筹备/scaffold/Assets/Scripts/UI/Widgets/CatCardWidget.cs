@@ -46,8 +46,9 @@ namespace AiCat.UI.Widgets
             var desc = ui.AddText("Desc", go.transform, definition.Description,
                 16, TextAnchor.UpperLeft, new Color(0.35f, 0.3f, 0.25f, 1f));
             desc.verticalOverflow = VerticalWrapMode.Overflow;
+            // 锚点拉伸到整卡，但用 offset 限制在 title（顶 12~60px）下方：顶距 68px、底距 12px，避免重叠。
             ui.SetRect(desc.gameObject, Vector2.zero, new Vector2(1, 1), new Vector2(0.5f, 1),
-                new Vector2(16, -80), new Vector2(-16, -16));
+                new Vector2(16, 12), new Vector2(-16, -68));
         }
 
         public void SetSelected(bool selected)

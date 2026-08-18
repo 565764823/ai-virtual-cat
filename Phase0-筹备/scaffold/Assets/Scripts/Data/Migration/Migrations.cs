@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace AiCat.Data.Migration
 {
     /// <summary>
