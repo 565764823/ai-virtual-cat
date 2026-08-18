@@ -1,0 +1,94 @@
+name: CI
+
+# T0-8 CI/CD 流水线：每次 push 到 main / 发起 PR 时自动「测试 + 构建」。
+# - python-tests：零依赖离线测试（POC 纯函数 + SQLite 建模自检），无需模型、无需联网。
+# - unity-build：GameCI 自动构建 Win64；需配置 Unity 许可证 secret 才启用（未配置则整 job 跳过，不红）。
+# 说明文档见 Phase0-筹备/ci-cd.md。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}  # 支持手动触发
+
+jobs:
+  # -------------------------------------------------------------------------
+  # 1) Python 测试 + SQLite 自检（核心，离线可跑，立即生效）
+  # -------------------------------------------------------------------------
+  python-tests:
+    name: Python 测试与 SQLite 自检
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 语法编译检查（全部 .py）
+        run: python -m compileall -q Phase0-筹备/POC Phase0-筹备/database Phase0-筹备/tests
+
+      - name: 离线单元测试（POC 纯函数 + 数据库向量）
+        run: python Phase0-筹备/tests/test_offline.py
+
+      - name: SQLite 建模自检（迁移 + 播种 + 四项自检）
+        run: python Phase0-筹备/database/init_db.py --fresh
+
+  # -------------------------------------------------------------------------
+  # 2) 许可证探测：Unity 构建需要 UNITY_LICENSE，未配置则跳过构建（不红）
+  #    （GitHub 不允许在 job 级 if 里直接引用 secrets，故用前置 job 中转）
+  # -------------------------------------------------------------------------
+  check-unity-license:
+    runs-on: ubuntu-latest
+    outputs:
+      configured: ${{ steps.check.outputs.configured }}
+    steps:
+      - id: check
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        run: |
+          if [ -n "$UNITY_LICENSE" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # -------------------------------------------------------------------------
+  # 3) Unity 自动构建（Win64）：仅在配置 Unity 许可证后运行
+  #    配置方式见 Phase0-筹备/ci-cd.md §三（GameCI 激活个人许可证）
+  # -------------------------------------------------------------------------
+  unity-build:
+    name: Unity 自动构建 (StandaloneWindows64)
+    needs: check-unity-license
+    if: needs.check-unity-license.outputs.configured == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/cache@v4
+        with:
+          path: Phase0-筹备/scaffold/Library
+          key: Library-StandaloneWindows64-${{ hashFiles('Phase0-筹备/scaffold/Assets/**', 'Phase0-筹备/scaffold/Packages/**', 'Phase0-筹备/scaffold/ProjectSettings/**') }}
+          restore-keys: |
+            Library-StandaloneWindows64-
+            Library-
+
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: Phase0-筹备/scaffold
+          targetPlatform: StandaloneWindows64
+          buildMethod: AiCat.Editor.BuildScript.BuildWindows
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-cat-win64
+          path: Phase0-筹备/scaffold/Builds/StandaloneWindows64
+          if-no-files-found: error
